@@ -219,7 +219,7 @@ class RecvThread(threading.Thread):
                     self.core.reconnect()
             except (ValueError, exceptions.ObjectError) as e:
                 LOG.warning("Invalid message: {} ({})".format(message, e))
-            except websocket.ConnectionResetError as e:
+            except ConnectionResetError as e:
                 if self.core.on_error:
                     self.core.on_error(e)
         # end while
