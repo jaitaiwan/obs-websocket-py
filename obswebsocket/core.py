@@ -50,7 +50,7 @@ class obsws:
         self.port = port
         self.password = password
 
-    def connect(self, host = None, port = None):
+    def connect(self, host = None, port = None, on_error = None):
         """
         Connect to the websocket server
 
@@ -60,6 +60,8 @@ class obsws:
             self.host = host
         if not port is None:
             self.port = port
+        if not on_error is None:
+            self.on_error = on_error
 
         try:
             self.ws = websocket.WebSocket()
@@ -121,6 +123,7 @@ class obsws:
             self.thread_recv.running = False
         self.thread_recv = RecvThread(self)
         self.thread_recv.daemon = True
+        self.thread_recv.error_handler = self.on_error
         self.thread_recv.start()
 
     def call(self, obj):
@@ -216,6 +219,8 @@ class RecvThread(threading.Thread):
                     self.core.reconnect()
             except (ValueError, exceptions.ObjectError) as e:
                 LOG.warning("Invalid message: {} ({})".format(message, e))
+            except websocket.ConnectionResetError as e:
+                self.on_error(e)
         # end while
         LOG.debug("RecvThread ended.")
 
